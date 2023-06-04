@@ -59,6 +59,7 @@ void rcFilterLowHangingWalkableObstacles(rcContext* context, const int walkableC
 	}
 }
 
+//gongchao 不明白不明白????
 void rcFilterLedgeSpans(rcContext* context, const int walkableHeight, const int walkableClimb,
                         rcHeightfield& heightfield)
 {

@@ -119,6 +119,7 @@ static bool addSpan(rcHeightfield& hf,
 	newSpan->area = areaID;
 	newSpan->next = NULL;
 	
+	//gongchao? columnIndex 算的没理解
 	const int columnIndex = x + z * hf.width;
 	rcSpan* previousSpan = NULL;
 	rcSpan* currentSpan = hf.spans[columnIndex];
@@ -128,12 +129,14 @@ static bool addSpan(rcHeightfield& hf,
 	{
 		if (currentSpan->smin > newSpan->smax)
 		{
+			// gongchao Current span 完全在newSpan 的上面
 			// Current span is completely after the new span, break.
 			break;
 		}
 		
 		if (currentSpan->smax < newSpan->smin)
 		{
+			//gongchao Current span 完全在newspan 的下面
 			// Current span is completely before the new span.  Keep going.
 			previousSpan = currentSpan;
 			currentSpan = currentSpan->next;
@@ -228,6 +231,7 @@ static void dividePoly(const float* inVerts, int inVertsCount,
                        float* outVerts2, int* outVerts2Count,
                        float axisOffset, rcAxis axis)
 {
+	//gongchao? 为什么最多是12 个顶点
 	rcAssert(inVertsCount <= 12);
 	
 	// How far positive or negative away from the separating axis is each vertex.
@@ -340,6 +344,8 @@ static bool rasterizeTri(const float* v0, const float* v1, const float* v2,
 	z1 = rcClamp(z1, 0, h - 1);
 
 	// Clip the triangle into all grid cells it touches.
+
+	//gongchao? 如何理解7
 	float buf[7 * 3 * 4];
 	float* in = buf;
 	float* inRow = buf + 7 * 3;
@@ -356,6 +362,7 @@ static bool rasterizeTri(const float* v0, const float* v1, const float* v2,
 	{
 		// Clip polygon to row. Store the remaining polygon as well
 		const float cellZ = hfBBMin[2] + (float)z * cellSize;
+		//gongchao? dividePoly 复杂的算法,等待后续
 		dividePoly(in, nvIn, inRow, &nvRow, p1, &nvIn, cellZ + cellSize, RC_AXIS_Z);
 		rcSwap(in, p1);
 		

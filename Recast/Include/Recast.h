@@ -1197,6 +1197,7 @@ bool rcBuildRegionsMonotone(rcContext* ctx, rcCompactHeightfield& chf,
 /// @param[in]		neighborIndex	The index of the neighbor span.
 inline void rcSetCon(rcCompactSpan& span, int direction, int neighborIndex)
 {
+	//gongchao? 复杂的位运算
 	const unsigned int shift = (unsigned int)direction * 6;
 	const unsigned int con = span.con;
 	span.con = (con & ~(0x3f << shift)) | (((unsigned int)neighborIndex & 0x3f) << shift);

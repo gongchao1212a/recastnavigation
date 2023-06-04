@@ -409,6 +409,8 @@ bool Sample_SoloMesh::handleBuild()
 	// area could be specified by an user defined box, etc.
 	rcVcopy(m_cfg.bmin, bmin);
 	rcVcopy(m_cfg.bmax, bmax);
+
+	//gongchao m_cfg.width 代表 x 轴 的数目,m_cfg.height 代表 z 轴的数目
 	rcCalcGridSize(m_cfg.bmin, m_cfg.bmax, m_cfg.cs, &m_cfg.width, &m_cfg.height);
 
 	// Reset build times gathering.
@@ -432,6 +434,7 @@ bool Sample_SoloMesh::handleBuild()
 		m_ctx->log(RC_LOG_ERROR, "buildNavigation: Out of memory 'solid'.");
 		return false;
 	}
+	//gongchao 创建高度场
 	if (!rcCreateHeightfield(m_ctx, *m_solid, m_cfg.width, m_cfg.height, m_cfg.bmin, m_cfg.bmax, m_cfg.cs, m_cfg.ch))
 	{
 		m_ctx->log(RC_LOG_ERROR, "buildNavigation: Could not create solid heightfield.");
@@ -452,6 +455,7 @@ bool Sample_SoloMesh::handleBuild()
 	// If your input data is multiple meshes, you can transform them here, calculate
 	// the are type for each of the meshes and rasterize them.
 	memset(m_triareas, 0, ntris*sizeof(unsigned char));
+	//gongchao 比较坡度
 	rcMarkWalkableTriangles(m_ctx, m_cfg.walkableSlopeAngle, verts, nverts, tris, ntris, m_triareas);
 	if (!rcRasterizeTriangles(m_ctx, verts, nverts, tris, m_triareas, ntris, *m_solid, m_cfg.walkableClimb))
 	{
@@ -472,10 +476,14 @@ bool Sample_SoloMesh::handleBuild()
 	// Once all geoemtry is rasterized, we do initial pass of filtering to
 	// remove unwanted overhangs caused by the conservative rasterization
 	// as well as filter spans where the character cannot possibly stand.
+	//gongchao 对于同一列Span来说,从下到上遍历,如果相邻的span 的高度差小于walkableClimb,下面的是可通过的,上面的也是可通过的.eg 楼梯
 	if (m_filterLowHangingObstacles)
 		rcFilterLowHangingWalkableObstacles(m_ctx, m_cfg.walkableClimb, *m_solid);
+	//gongchao 陡峭区域过滤,难难难
 	if (m_filterLedgeSpans)
 		rcFilterLedgeSpans(m_ctx, m_cfg.walkableHeight, m_cfg.walkableClimb, *m_solid);
+
+	//gongchao 从下到上遍历,如果相邻的Span的高度差小于walkableHeight 就是不可通行区域
 	if (m_filterWalkableLowHeightSpans)
 		rcFilterWalkableLowHeightSpans(m_ctx, m_cfg.walkableHeight, *m_solid);
 
@@ -504,7 +512,8 @@ bool Sample_SoloMesh::handleBuild()
 		rcFreeHeightField(m_solid);
 		m_solid = 0;
 	}
-		
+
+	//----------------2023年6月4日------------------------------------------------------
 	// Erode the walkable area by agent radius.
 	if (!rcErodeWalkableArea(m_ctx, m_cfg.walkableRadius, *m_chf))
 	{
@@ -543,7 +552,8 @@ bool Sample_SoloMesh::handleBuild()
 	//   - can be slow and create a bit ugly tessellation (still better than monotone)
 	//     if you have large open areas with small obstacles (not a problem if you use tiles)
 	//   * good choice to use for tiled navmesh with medium and small sized tiles
-	
+
+	// Sample_Partition_Watershed
 	if (m_partitionType == SAMPLE_PARTITION_WATERSHED)
 	{
 		// Prepare for region partitioning, by calculating distance field along the walkable surface.
@@ -560,6 +570,7 @@ bool Sample_SoloMesh::handleBuild()
 			return false;
 		}
 	}
+	//Sample_Partition_Monotone
 	else if (m_partitionType == SAMPLE_PARTITION_MONOTONE)
 	{
 		// Partition the walkable surface into simple regions without holes.
@@ -643,7 +654,6 @@ bool Sample_SoloMesh::handleBuild()
 	// See duDebugDrawPolyMesh or dtCreateNavMeshData as examples how to access the data.
 	
 	//
-	// (Optional) Step 8. Create Detour data from Recast poly mesh.
 	//
 	
 	// The GUI may allow more max points per polygon than Detour can handle.

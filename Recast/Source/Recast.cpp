@@ -315,6 +315,7 @@ bool rcCreateHeightfield(rcContext* context, rcHeightfield& heightfield, int siz
 	rcVcopy(heightfield.bmax, maxBounds);
 	heightfield.cs = cellSize;
 	heightfield.ch = cellHeight;
+	
 	heightfield.spans = (rcSpan**)rcAlloc(sizeof(rcSpan*) * heightfield.width * heightfield.height, RC_ALLOC_PERM);
 	if (!heightfield.spans)
 	{
@@ -450,6 +451,7 @@ bool rcBuildCompactHeightfield(rcContext* context, const int walkableHeight, con
 	// Fill in cells and spans.
 	int currentCellIndex = 0;
 	const int numColumns = xSize * zSize;
+	//将Heightfield 中的Span 赋值给compactHeightfield
 	for (int columnIndex = 0; columnIndex < numColumns; ++columnIndex)
 	{
 		const rcSpan* span = heightfield.spans[columnIndex];
@@ -459,7 +461,8 @@ bool rcBuildCompactHeightfield(rcContext* context, const int walkableHeight, con
 		{
 			continue;
 		}
-			
+
+		//每一列都保存一个rcCompanceCell,记录第一个span 和 span 的数目
 		rcCompactCell& cell = compactHeightfield.cells[columnIndex];
 		cell.index = currentCellIndex;
 		cell.count = 0;
@@ -478,7 +481,8 @@ bool rcBuildCompactHeightfield(rcContext* context, const int walkableHeight, con
 			}
 		}
 	}
-	
+
+	//gongchao 计算周边邻居的连通性,避免移动时碰撞头
 	// Find neighbour connections.
 	const int MAX_LAYERS = RC_NOT_CONNECTED - 1;
 	int maxLayerIndex = 0;
@@ -516,6 +520,7 @@ bool rcBuildCompactHeightfield(rcContext* context, const int walkableHeight, con
 						// and that the climb height between the gaps is not too high.
 						if ((top - bot) >= walkableHeight && rcAbs((int)neighborSpan.y - (int)span.y) <= walkableClimb)
 						{
+							//gongchao? 这里LayerIndex 也存疑,哈哈
 							// Mark direction as walkable.
 							const int layerIndex = k - (int)neighborCell.index;
 							if (layerIndex < 0 || layerIndex > MAX_LAYERS)
